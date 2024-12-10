@@ -22,10 +22,19 @@ const parseInput = (input: string) =>
     return [list1, list2]
   })
 
-export const result = (input: string) =>
+export const part1 = (input: string) =>
   Effect.gen(function*() {
     const [list1, list2] = yield* parseInput(input)
     list1.sort((a, b) => a - b)
     list2.sort((a, b) => a - b)
     return list1.map((left, index) => Math.abs(left - list2[index])).reduce((sum, value) => sum + value, 0)
+  })
+
+const getSimilarityScore = (value: number, list: Array<number>) =>
+  value * list.reduce((occurrences, value2) => value === value2 ? occurrences + 1 : occurrences, 0)
+
+export const part2 = (input: string) =>
+  Effect.gen(function*() {
+    const [list1, list2] = yield* parseInput(input)
+    return list1.map((left) => getSimilarityScore(left, list2)).reduce((sum, value) => sum + value, 0)
   })
