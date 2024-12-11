@@ -23,10 +23,11 @@ const command = Command.make(
       Match.when(2, () =>
         Match.value(part).pipe(
           Match.when(1, (_) => Day2.part1(content)),
+          Match.when(2, (_) => Day2.part2(content)),
           Match.orElse(() => Effect.fail(new Error("Invalid part argument")))
         )),
       Match.orElse(() => Effect.fail(new Error("Invalid day argument")))
-    ).pipe(Effect.tap(Console.log))
+    ).pipe(Effect.tapBoth({ onFailure: Console.log, onSuccess: Console.log }))
 )
 
 export const run = Command.run(command, {
