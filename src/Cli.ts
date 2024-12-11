@@ -6,6 +6,7 @@ import * as Match from "effect/Match"
 import * as Day1 from "./Day1.js"
 import * as Day2 from "./Day2.js"
 import * as Day3 from "./Day3.js"
+import * as Day4 from "./Day4.js"
 
 const day = Args.integer({ name: "day" })
 const part = Args.integer({ name: "part" })
@@ -31,6 +32,12 @@ const command = Command.make(
         Match.value(part).pipe(
           Match.when(1, (_) => Day3.part1(content)),
           Match.when(2, (_) => Day3.part2(content)),
+          Match.orElse(() => Effect.fail(new Error("Invalid part argument")))
+        )),
+      Match.when(4, () =>
+        Match.value(part).pipe(
+          Match.when(1, (_) => Day4.part1(content)),
+          Match.when(2, (_) => Day4.part2(content)),
           Match.orElse(() => Effect.fail(new Error("Invalid part argument")))
         )),
       Match.orElse(() => Effect.fail(new Error("Invalid day argument")))
