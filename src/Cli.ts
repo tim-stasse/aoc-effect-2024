@@ -30,6 +30,7 @@ const command = Command.make(
       Match.when(3, () =>
         Match.value(part).pipe(
           Match.when(1, (_) => Day3.part1(content)),
+          Match.when(2, (_) => Day3.part2(content)),
           Match.orElse(() => Effect.fail(new Error("Invalid part argument")))
         )),
       Match.orElse(() => Effect.fail(new Error("Invalid day argument")))
