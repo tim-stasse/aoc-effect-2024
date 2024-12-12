@@ -30,6 +30,14 @@ class PrintingUpdate {
     return true
   }
 
+  withCorrectOrdering(rules: Array<[number, number]>) {
+    this.pages.sort((a, b) => {
+      const rule = rules.find(([left, right]) => (a === left && b === right) || (a === right && b === left))
+      return !rule ? 0 : a === rule[0] ? -1 : 1
+    })
+    return this
+  }
+
   get middlePage() {
     return this.pages[Math.round(this.pages.length / 2) - 1]
   }
@@ -53,6 +61,16 @@ export const part1 = (input: string) => {
   return Effect.succeed(middlePages.reduce((sum, value) => sum + value, 0))
 }
 
-export const part2 = (_input: string) => {
-  return Effect.succeed(0)
+export const part2 = (input: string) => {
+  const { rules, updates } = parseInput(input)
+  const applicableRulesMap = new Map<PrintingUpdate, Array<[number, number]>>()
+  const incorrectlyOrderedUpdates = updates.filter((update) => {
+    const applicableRules = rules.getApplicable(update)
+    applicableRulesMap.set(update, applicableRules)
+    return !update.isCorrectlyOrdered(applicableRules)
+  })
+  const middlePages = incorrectlyOrderedUpdates.map((update) =>
+    update.withCorrectOrdering(applicableRulesMap.get(update)!).middlePage
+  )
+  return Effect.succeed(middlePages.reduce((sum, value) => sum + value, 0))
 }
