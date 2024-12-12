@@ -12,6 +12,10 @@ class Vector {
   add(value: Vector) {
     return new Vector(this.x + value.x, this.y + value.y)
   }
+
+  isEqual(value: Vector) {
+    return this.x === value.x && this.y === value.y
+  }
 }
 
 enum Direction {
@@ -34,6 +38,13 @@ const directionMap = new Map([
   [Direction.SouthWest, new Vector(-1, -1)],
   [Direction.West, new Vector(-1, 0)],
   [Direction.NorthWest, new Vector(-1, 1)]
+])
+
+const xMap = new Map([
+  [Direction.NorthEast, [Direction.NorthWest, Direction.SouthEast]],
+  [Direction.SouthEast, [Direction.NorthEast, Direction.SouthWest]],
+  [Direction.SouthWest, [Direction.NorthWest, Direction.SouthEast]],
+  [Direction.NorthWest, [Direction.NorthEast, Direction.SouthWest]]
 ])
 
 class WordSearch {
@@ -93,4 +104,22 @@ export const part1 = (input: string) => {
   return Effect.succeed(wordSearch.searchForWordInstances("XMAS").length)
 }
 
-export const part2 = (_input: string) => Effect.succeed(0)
+export const part2 = (input: string) => {
+  const wordSearch = parseInput(input)
+  const diagonals = wordSearch.searchForWordInstances("MAS").filter(([, direction]) =>
+    [...xMap.keys()].includes(direction)
+  )
+  const crossOverPoints = diagonals.reduce((crossOverPoints, [position, direction], index) => {
+    const crossOverPoint = position.add(directionMap.get(direction)!)
+    for (const diagonal of diagonals.slice(index + 1)) {
+      if (
+        xMap.get(direction)!.includes(diagonal[1]) &&
+        diagonal[0].add(directionMap.get(diagonal[1])!).isEqual(crossOverPoint)
+      ) {
+        crossOverPoints.add(crossOverPoint)
+      }
+    }
+    return crossOverPoints
+  }, new Set<Vector>())
+  return Effect.succeed(crossOverPoints.size)
+}
