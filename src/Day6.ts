@@ -35,18 +35,32 @@ class GuardGallivant {
     this.obstacles = obstacles
   }
 
+  clone() {
+    return new GuardGallivant(this.startingPosition, this.bounds, [...this.obstacles])
+  }
+
   isOutOfBounds(position: Vector) {
-    return position.x >= this.bounds.x || position.y >= this.bounds.y
+    return position.x < 0 || position.y < 0 || position.x >= this.bounds.x || position.y >= this.bounds.y
   }
 
   get predictedRoute() {
     let currentPosition = this.startingPosition
     let currentDirection = Vector.up
-    const route: Array<Vector> = []
+    const route: Array<[Vector, Vector]> = []
 
     while (!this.isOutOfBounds(currentPosition)) {
-      route.push(currentPosition)
+      if (
+        route.some(([position, direction]) =>
+          position.isEqual(currentPosition) &&
+          direction.isEqual(currentDirection)
+        )
+      ) {
+        return [true, route] as const
+      }
+
+      route.push([currentPosition, currentDirection])
       const nextPosition = currentPosition.add(currentDirection)
+
       if (this.obstacles.some((obstacle) => nextPosition.isEqual(obstacle))) {
         Match.value(currentDirection).pipe(
           Match.when(Vector.up, () => {
@@ -64,15 +78,17 @@ class GuardGallivant {
         )
         continue
       }
+
       currentPosition = nextPosition
     }
 
-    return route
+    return [false, route] as const
   }
 
   get traversedPositions() {
     const traversedPositions: Array<Vector> = []
-    for (const position of this.predictedRoute) {
+    const [, route] = this.predictedRoute
+    for (const [position] of route) {
       if (traversedPositions.every((traversedPosition) => !position.isEqual(traversedPosition))) {
         traversedPositions.push(position)
       }
@@ -111,6 +127,17 @@ export const part1 = (input: string) => {
   return Effect.succeed(guardGallivant.traversedPositions.length)
 }
 
-export const part2 = (_input: string) => {
-  return Effect.succeed(0)
+export const part2 = (input: string) => {
+  const guardGallivant = parseInput(input)
+  let routeLoopCount = 0
+  for (const position of guardGallivant.traversedPositions) {
+    if (position.isEqual(guardGallivant.startingPosition)) {
+      continue
+    }
+    const possibleGuardGallivant = guardGallivant.clone()
+    possibleGuardGallivant.obstacles.push(position)
+    const [routeDoesLoop] = possibleGuardGallivant.predictedRoute
+    if (routeDoesLoop) routeLoopCount++
+  }
+  return Effect.succeed(routeLoopCount)
 }
